@@ -29,7 +29,7 @@ const firebaseConfig = {
    const app = initializeApp(firebaseConfig);
    const auth =getAuth(app)
    const db=getFirestore()
-
+const baseUrl="https://noones-be-1.onrender.com"
 function App() {
     const accessToken = localStorage.getItem("token");
   const users=[
@@ -50,7 +50,7 @@ function App() {
       }
   ]
 
-  const [trigger, setTrigger] = useState(true)
+  const [trigger, setTrigger] = useState("not_triggered")
   const [loading, setloading] = useState(false)
   const [triggering, setTriggering] = useState(false)
   const [user,setUser]=useState({id:""})
@@ -61,27 +61,36 @@ function App() {
 
   const [cred,setCreds]=useState({})
 
-  const [loggedIn,setLogin]=useState(false)
-  const auth = getAuth();
-      useEffect(()=>{
-              onAuthStateChanged(auth, (user) => {
-                console.log(user,"user")
-              if (user) {
-            // User is signed in, see docs for a list of available properties
-            // https://firebase.google.com/docs/reference/js/auth.user
-            toast.loading('Waiting for Authentication');
-            const uid = user.uid;
-             getAccessToken()
-            setTrigger(false)
-            toast.dismiss()
-            // ...
-          } else {
-            // User is signed out
-            // ...
-          }
-                    });
+  const userNoone = localStorage.getItem("noone");
+     useEffect( ()=>{ 
+        if(JSON.parse(userNoone)?.id?.length >0){
+          const unsub = onSnapshot(doc(db,"users",JSON.parse(userNoone)?.id), (doc) => {
+            
+            setUser({...doc.data(),id:doc?.id})
+            if(doc?.id?.length !=undefined){
+             
+               getAccessToken()
+               setTrigger("triggered")
+            }else{
+               localStorage.clear();
+                setTrigger("not_triggered")
+                toast.error("You are not signed up",{duration:3000})
+            }
 
-      },[])
+          });
+
+        
+          }else{
+            const userLogged = localStorage.getItem("noone");
+            setUser(JSON.parse(userLogged ))
+          }
+
+    },[userNoone])
+
+   console.log(user,"user>>>>>>>>>.")
+
+  const [loggedIn,setLogin]=useState(false)
+
      
            
 
@@ -92,7 +101,7 @@ function App() {
     console.log("Run again")
      const getActiveTrades=async()=>{
           try{
-                  axios.post('http://localhost:3003/api/v1/get-trades',{token:token},{
+                  axios.post(`${baseUrl}/api/v1/get-trades`,{token:token},{
                     headers: {
                         'Content-Type': 'application/json'
                       }
@@ -136,7 +145,7 @@ function App() {
          toast.loading('Waiting for Access Token');
        try{
             
-              axios.get('http://localhost:3003/api/v1/get-token',{
+              axios.get(`${baseUrl}/api/v1/get-token`,{
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded'
                   }
@@ -144,7 +153,7 @@ function App() {
             .then(response => {
                 console.log('Access Token:', response.data?.data?.access_token);
                 setToken(response.data?.data?.access_token)
-                setTrigger(false)
+                setTrigger("triggered")
             
                 toast.dismiss();
             })
@@ -176,11 +185,12 @@ function App() {
           if (docSnap.exists()) {
                    getAccessToken()
                    toast.dismiss();
-                   return {id:docSnap?.id,...docSnap?.data()}
+                   localStorage.clear();
+                   localStorage.setItem('noone',JSON.stringify(docSnap.data()));
                     
 
               } else {
-                setTrigger(false)
+                setTrigger("not_triggered")
                 throw new Error("You are not signed up")
                   console.log("No such document!");
                   
@@ -206,6 +216,8 @@ function App() {
           await setDoc(ref,{id:user?.uid,role:"user",email:cred?.email})
           const docSnap = await getDoc(ref);
           if (docSnap.exists()) {
+                localStorage.clear();
+                localStorage.setItem('noone',JSON.stringify(docSnap.data()));
                  getAccessToken()
               }else{
 
@@ -220,12 +232,14 @@ function App() {
     }
 
     const logout=async()=>{
-      setTrigger(false)
+      setTrigger("triggered")
       toast.loading('Loging out');
       
        try{
           const response=await signOut(auth)
+
           toast.dismiss();
+          localStorage.clear();
           window.location.reload();
      
        }catch(e){
@@ -267,7 +281,9 @@ function App() {
                                  setTrade={setTrade}
                                  trade={trade}
                               />
+                              {user?.role !="user"&&
                               <Users />
+                           }
 
                             </div>
 
@@ -299,7 +315,7 @@ function App() {
 
 
        </div>
-          <Modal trigger={trigger}  cname="w-1/5 py-2  bg-white  px-4 rounded-lg ">
+          <Modal trigger={trigger=="triggered"?false:true}  cname="w-1/5 py-2  bg-white  px-4 rounded-lg ">
                   
                         <div className=' space-y-8 w-full flex flex-col items-center py-8 '>
                                  <h5 className='font-semibold'>Dashboard</h5>
@@ -468,7 +484,7 @@ const Chat=({trade,token})=>{
    const getActiveTrades=async()=>{
     toast.loading('Fetching....');
     try{
-            axios.post('http://localhost:3003/api/v1/get-chat',{
+            axios.post(`${baseUrl}/api/v1/get-chat`,{
               token:token,
               hash:trade?.trade_hash,
               },{
@@ -519,7 +535,7 @@ const Chat=({trade,token})=>{
   const sendMsg=async()=>{
     setLoader(true)
         try{
-          axios.post('http://localhost:3003/api/v1/send-chat',{
+          axios.post(`${baseUrl}/api/v1/send-chat`,{
             token:token,
             hash:trade?.trade_hash,
             msg:text
@@ -668,7 +684,7 @@ const Details=({trade,token})=>{
     alert("Confirm this ")
 
     try{
-      axios.post('http://localhost:3003/api/v1/release',{
+      axios.post(`${baseUrl}/api/v1/release`,{
         token:token,
         hash:trade?.trade_hash,
 
