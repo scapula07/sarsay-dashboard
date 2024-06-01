@@ -811,7 +811,7 @@ const Users=()=>{
 
 const UserRow=({user})=>{
   const deleteUser=async()=>{
-    toast.loading("Deleting user")
+   
     try{
 
       await deleteDoc(doc(db,"users",user?.id));
