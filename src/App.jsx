@@ -100,6 +100,7 @@ function App() {
   useEffect(()=>{
     console.log("Run again")
      const getActiveTrades=async()=>{
+          toast.loading("Fetching Trades")
           try{
                   axios.post(`${baseUrl}/api/v1/get-trades`,{token:token},{
                     headers: {
@@ -110,12 +111,14 @@ function App() {
                     console.log('Trades:', response.data?.data?.filter(offer=>offer?.offer_type==="sell"));
                     setTrades(response.data?.data)
                     setTrade(response.data?.data[0])
+                    toast.dismiss("Fetching Trades")
                   
                 })
                 .catch(error => {
                     console.error('Error:',error, error?.response?.status);
                     if(error?.response?.status==401){
                       getAccessToken()
+                      toast.dismiss("Fetching Trades")
                       
                     }else{
 
@@ -337,32 +340,18 @@ function App() {
                              
                                           
                                
-                              {!loggedIn?     
+                          
                                  <button className='bg-yellow-400 text-sm py-2 px-10 rounded-sm'   onClick={login}>
                                         Login
                                   </button>
-                                  :
-                                  <button className='bg-yellow-400 text-sm py-2 px-10 rounded-sm'   onClick={signup}>
-                                      Sign up
-                                  </button>
-                               }
-                                           
+                                               
 
                                  
 
 
                               
 
-                              <div className='flex justify-center'>
-                                {!loggedIn?
-                                    <h5 className='text-sm font-semibold hover:text-yellow-500' onClick={()=>setLogin(true)}>Sign up</h5>
-                                    :
-                                    <h5 className='text-sm font-semibold hover:text-yellow-500' onClick={()=>setLogin(false)}>Login</h5>
-                                }
-                                  
-                                  
-                              </div>
-    
+
         
                           </div>
                
