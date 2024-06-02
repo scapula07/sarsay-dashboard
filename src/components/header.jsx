@@ -51,11 +51,14 @@ export default function Header({logout,open,setOpen,isOpen,token}) {
            <div className='flex space-x-10'>
                <button className='border-yellow-500 px-4 py-1 border text-sm font-light' onClick={logout}>Log out</button>
 
+              {balance=="Low"&&
+
                <h5 className='text-lg font-light space-x-4  '>
                     Balance is
 
                   <span className={balance==="Low"?"text-red-500":"text-green-500"}> {balance}</span>
                </h5>
+}
 
            </div>
     

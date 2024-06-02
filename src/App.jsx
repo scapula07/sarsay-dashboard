@@ -111,20 +111,20 @@ function App() {
                     console.log('Trades:', response.data?.data?.filter(offer=>offer?.offer_type==="sell"));
                     setTrades(response.data?.data)
                     setTrade(response.data?.data[0])
-                    toast.dismiss("Fetching Trades")
+                    toast.dismiss()
                   
                 })
                 .catch(error => {
                     console.error('Error:',error, error?.response?.status);
                     if(error?.response?.status==401){
                       getAccessToken()
-                      toast.dismiss("Fetching Trades")
+                      toast.dismiss()
                       
                     }else{
 
                     }
                 });
-    
+                toast.dismiss()
               
              }catch(e){
                console.log(e,"eee")
